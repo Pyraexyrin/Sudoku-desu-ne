@@ -9,7 +9,10 @@
 
 ;; +alphabet+ est l'ensemble des caractères jouables (1 à 9 pour une
 ;; grille 9x9)
-(defparameter +alphabet+ '(1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P))
+(defparameter +alphabet+
+  '(#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9
+    #\A #\B #\C #\D #\E #\F #\G #\H #\I
+    #\J #\K #\L #\M #\N #\O #\P))
 
 ;; +n+ est la taille d'une région (donnant une grille n^2)
 (defparameter +n+ 3)
@@ -26,7 +29,7 @@
 	 (grid (make-array (list size size) :initial-element nil)))
     (dotimes (i size)
       (dotimes (j size)
-	(let ((copy (copy-list (cons #\Space (subseq +alphabet+ 0 +n+)))))
+	(let ((copy (copy-list (cons #\Space (subseq +alphabet+ 0 size)))))
 	  (setf (aref grid i j) copy))))
     grid))
 
@@ -135,55 +138,66 @@
 ;; Fonctions servant à l'affichage d'une grille.
 ;; La fonction générale est en bas.
 
+(defun draw-coordonates-line ()
+  (let ((size (* +n+ +n+)))
+    (format t "~C   " #\linefeed)
+    (dotimes (i size)
+      (format t "   ~D" (nth i +alphabet+)))
+    (format t "~C" #\linefeed)))
+
+;; BACKUP BEGIN
+
 (defun draw-numbers-line (n x)
-  (format t "║")
+  (format t " ~D  *" (nth x +alphabet+))
   (dotimes (i n)
     (dotimes (j n)
-      (format t " ~D │" (get-grid-value *grid* x (+ (* i +n+) j))))
-    (format t " ~D ║" (get-grid-value *grid* x (+ (* i +n+) n))))
+      (format t " ~D |" (get-grid-value *grid* x (+ (* i +n+) j))))
+    (format t " ~D *" (get-grid-value *grid* x (+ (* i +n+) n))))
   (dotimes (k n)
-    (format t " ~D │" (get-grid-value *grid* x (+ (* +n+ n) k))))
-  (format t " ~D ║~C" (get-grid-value *grid* x (+ (* +n+ n) n)) #\linefeed))
+    (format t " ~D |" (get-grid-value *grid* x (+ (* +n+ n) k))))
+  (format t " ~D *~C" (get-grid-value *grid* x (+ (* +n+ n) n)) #\linefeed))
 
 (defun draw-first-line (n)
-  (format t "╔")
+  (format t "    *")
   (dotimes (i n)
     (dotimes (j n)
-      (format t "═══╤"))
-    (format t "═══╦"))
+      (format t "****"))
+    (format t "****"))
   (dotimes (k n)
-    (format t "═══╤"))
-  (format t "═══╗~C" #\linefeed))
+    (format t "****"))
+  (format t "****~C" #\linefeed))
 
 (defun draw-between-lines (n)
-  (format t "╟")
+  (format t "    *")
   (dotimes (i n)
     (dotimes (j n)
-      (format t "───┼"))
-    (format t "───╫"))
+      (format t "----"))
+    (format t "---*"))
   (dotimes (k n)
-    (format t "───┼"))
-  (format t "───╢~C" #\linefeed))
+    (format t "----"))
+  (format t "---*~C" #\linefeed))
 
 (defun draw-between-regions (n)
-  (format t "╠")
+  (format t "    *")
   (dotimes (i n)
     (dotimes (j n)
-      (format t "═══╪"))
-    (format t "═══╬"))
+      (format t "****"))
+    (format t "****"))
   (dotimes (k n)
-    (format t "═══╪"))
-  (format t "═══╣~C" #\linefeed))
+    (format t "****"))
+  (format t "****~C" #\linefeed))
 
 (defun draw-last-line (n)
-  (format t "╚")
+  (format t "    *")
   (dotimes (i n)
     (dotimes (j n)
-      (format t "═══╧"))
-    (format t "═══╩"))
+      (format t "****"))
+    (format t "****"))
   (dotimes (k n)
-    (format t "═══╧"))
-  (format t "═══╝~C" #\linefeed))
+    (format t "****"))
+  (format t "****~C" #\linefeed))
+
+;; BACKUP END
 
 ;; Elle appelle les milliards de fonctions qui travaillent derrière,
 ;; selon les besoins. Il s'agit essentiellement de codes similaires,
@@ -193,6 +207,7 @@
 ;; "~D" nb
 (defun draw-grid ()
   (let ((num (1- +n+)))
+    (draw-coordonates-line)
     (draw-first-line num)
     (dotimes (i num)
       (dotimes (j num)
@@ -205,3 +220,22 @@
       (draw-between-lines num))
     (draw-numbers-line num (+ (* +n+ num) num))
     (draw-last-line num)))
+
+;; Lecture de l'entrée standard du joueur.
+;; Une fois d'entrée lue, on vérifie qu'elle est correcte,
+;; sinon, on relance la fonction (avec un message d'erreur).
+(defun ask-player ()
+  (let (x y c)
+    
+    (format t "Entrez une combinaison colonne-ligne sous la forme C L :~C" #\linefeed)
+    (setq y (read-char))
+    (read-char) ; L'espace
+    (setq x (read-char))
+    (read-char) ; Le newline
+    
+    (format t "Entrez une valeur à inscrire :~C" #\linefeed)
+    (setq c (read-char))
+    
+    (if (setq x (position x +alphabet+))
+	(if (setq y (position y +alphabet+))
+	    (play *grid* x y c)))))
