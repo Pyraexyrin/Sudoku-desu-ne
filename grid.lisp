@@ -1,161 +1,145 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; GRID.LISP                                          ;;;
 ;;;                                                    ;;;
-;;; Ce fichier contient toutes les m√©thodes relatives  ;;;
-;;; √† l'√©dition et la gestion d'une grille.            ;;;
+;;;                     GRID.LISP                      ;;;
+;;;                                                    ;;;
+;;; Ce fichier contient toutes les mÈthodes relatives  ;;;
+;;;      ‡ l'Èdition et la gestion d'une grille.       ;;;
+;;;                                                    ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                                                    ;;;
+;;; Variables :                                        ;;;
+;;;                                                    ;;;
+;;; +alphabet+                                         ;;;
+;;; +n+                                                ;;;
+;;; +size+                                             ;;;
+;;; +subalpha+                                         ;;;
+;;;                                                    ;;;
+;;; Fonctions :                                        ;;;
+;;;                                                    ;;;
+;;; (make-grid)                                        ;;;
+;;; (get-grid-value grid x y)                          ;;;
+;;; (get-grid-possibilities grid x y)                  ;;;
+;;; (set-grid-value grid x y c)                        ;;;
+;;; (remove-from-possibilities grid x y c)             ;;;
+;;; (remove-all-possibilities grid x y)                ;;;
+;;; (is-playable grid x y)                             ;;;
+;;; (has-been-played grid x y)                         ;;;
+;;; (play grid x y c)                                  ;;;
+;;; (draw-coordonated-line)                            ;;;
+;;; (draw-numbers-line grid n x)                       ;;;
+;;; (draw-first-line n)                                ;;;
+;;; (draw-between-line n)                              ;;;
+;;; (draw-between-regions n)                           ;;;
+;;; (draw-last-line n)                                 ;;;
+;;; (draw-grid grid)                                   ;;;
+;;;                                                    ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; Variabes globales qui seront export√©es plus haut
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                    VARIABLES                       ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; +alphabet+ est l'ensemble des caract√®res jouables (1 √† 9 pour une
-;; grille 9x9)
+;; +alphabet+ est l'ensemble des caractËres jouables
+;; (1 ‡ 9 pour une grille 9x9)
 (defparameter +alphabet+
   '(#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9
     #\A #\B #\C #\D #\E #\F #\G #\H #\I
     #\J #\K #\L #\M #\N #\O #\P))
 
-;; +n+ est la taille d'une r√©gion (donnant une grille n^2)
+;; +n+ est la taille d'une rÈgion (donnant une grille n^2)
 (defparameter +n+ 3)
 
-;;; Fonctions d'interface (acc√®s direct aux champs de la grille)
+;; Variables permettant d'Èviter des calculs (utilisÈes
+;; frÈquemment)
+(defparameter +size+ (* +n+ +n+))
+(defparameter +subalpha+ (subseq +alphabet+ 0 +size+))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;                    FONCTIONS                       ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Constructeur de grille vide.
-;; Chaque case contient '(<valeur_jou√©e> <liste_des_√©l√©ments_jouables>)
-;; Quand la case est vide (pas de valeur_jou√©e), on met le caract√®re " "
-;; (espace) qui permet de ne pas s'en pr√©occuper lors de l'affichage.
-;; subseq permet de ne garder qu'une partie de l'alphabet.
+;; Chaque case contient '(<valeur_jouÈe> <liste_des_ÈlÈments_jouables>)
+;; Quand la case est vide (pas de valeur_jouÈe), on met le caractËre " "
+;; (espace) qui permet de ne pas s'en prÈoccuper lors de l'affichage.
 (defun make-grid ()
-  (let* ((size (* +n+ +n+))
-	 (grid (make-array (list size size) :initial-element nil)))
-    (dotimes (i size)
-      (dotimes (j size)
-	(let ((copy (copy-list (cons #\Space (subseq +alphabet+ 0 size)))))
+  (let ((grid (make-array (list +size+ +size+) :initial-element nil)))
+    (dotimes (i +size+)
+      (dotimes (j +size+)
+	(let ((copy (copy-list (cons #\Space +subalpha+))))
 	  (setf (aref grid i j) copy))))
     grid))
 
-;; Retourne la valeur jou√©e dans la case (x, y)
-;; /!\ x en vertical, y en horizontal
+;; Retourne la valeur jouÈe dans la case (x, y)
+;; /!\ x est la ligne, y la colonne
 (defun get-grid-value (grid x y)
   (car (aref grid x y)))
 
-;; Retourne la liste des √©l√©ments jouables dans la case (x, y)
+;; Retourne la liste des ÈlÈments jouables dans la case (x, y)
 (defun get-grid-possibilities (grid x y)
   (cdr (aref grid x y)))
 
-;; Modifie la valeur jou√©e d'une case.
-;; Renvoie NIL si c'√©tait d√©j√† la valeur jou√©e
+;; Modifie la valeur jouÈe d'une case.
+;; Renvoie NIL si c'Ètait dÈj‡ la valeur jouÈe
 (defun set-grid-value (grid x y c)
   (if (eq (car (aref grid x y)) c)
       nil
       (setf (car (aref grid x y)) c)))
 
-;; Retire une valeur de la liste des√©l√©ments jouables d'une case
+;; Retire une valeur de la liste des ÈlÈments jouables d'une case
 (defun remove-from-possibilities (grid x y c)
   (let ((case-car (car (aref grid x y)))
 	(case-cdr (cdr (aref grid x y))))
     (setf (aref grid x y) (cons case-car (remove c case-cdr)))))
 
-;; Vide la liste des √©l√©ments jouables d'une case
+;; Vide la liste des ÈlÈments jouables d'une case
 (defun remove-all-possibilities (grid x y)
   (let ((case-car (car (aref grid x y))))
     (setf (aref grid x y) (list case-car))))
 
-;; Retourne T s'il ne reste d'une valeur jouable possible
+;; Retourne T s'il ne reste qu'une valeur jouable possible
 (defun is-playable (grid x y)
   (let ((list (aref grid x y)))
     (and (endp (cddr list)) (not (endp (cdr list))))))
 
-;; Retourne T si la case est d√©j√† jou√©e (liste de possibilit√©s vide)
+;; Retourne T si la case est dÈj‡ jouÈe (liste de possibilitÈs vide)
 (defun has-been-played (grid x y)
   (endp (cdr (aref grid x y))))
-  
-;;; Fonctions compos√©es (via les fonctions d'interface)
 
-;; Joue une valeur dans une case, et supprime cette valeur des √©l√©ments
-;; jouables de sa ligne, colonne et r√©gion
+;; Joue une valeur dans une case, et supprime cette valeur des ÈlÈments
+;; jouables de sa ligne, colonne et rÈgion
 (defun play (grid x y c)
-  (if (eq c (get-grid-value grid x y))
-      nil
-      (let ((size (* +n+ +n+))
-	    (x0 (* +n+ (floor (/ x +n+))))
+  (if (position c (get-grid-possibilities grid x y))
+      (let ((x0 (* +n+ (floor (/ x +n+))))
 	    (y0 (* +n+ (floor (/ y +n+)))))
-	(dotimes (i size)
+	(dotimes (i +size+)
 	  (remove-from-possibilities grid x i c)
 	  (remove-from-possibilities grid i y c))
 	(dotimes (i +n+)
 	  (dotimes (j +n+)
 	    (remove-from-possibilities grid (+ x0 i) (+ y0 j) c)))
 	(remove-all-possibilities grid x y)
-	(set-grid-value grid x y c))))
+	(set-grid-value grid x y c))
+      nil))
 
-;; Joue une valeur dans une case si une seule possibilit√© demeure.
-;; Renvoie NIL si aucune case n'a √©t√© jou√©e
-(defun solve-one (grid)
-  (let ((size (* +n+ +n+))
-	(end-here nil))
-    (dotimes (i size)
-      (dotimes (j size)
-	(if (is-playable grid i j)
-	    (progn
-	      (play grid i j (first (get-grid-possibilities grid i j)))
-	      (setq end-here T)
-	      (setq i size)
-	      (setq j size)))))
-    end-here))
-
-;; R√©soud la grille enti√®re si elle peut l'√™tre.
-;; Renvoie NIL si la grille est insoluble (avec notre algorithme).
-(defun solve-grid (grid)
-  (loop until (not (solve-one grid)))
-  (let ((size (* +n+ +n+))
-	(end-here t))
-    (dotimes (i size)
-      (dotimes (j size)
-	(if (not (has-been-played grid i j))
-	    (progn
-	      (setq i size)
-	      (setq j size)
-	      (setq end-here nil)))))
-    end-here))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Variables et fonctions pour les tests en cours de d√©veloppement
-
-(defparameter *grid* (make-grid))
-
-(defun init-grid ()
-  (setq *grid* (make-grid)))
-
-(defun solvable-grid ()
-  (init-grid)
-  (play *grid* 0 0 1)
-  (play *grid* 2 1 1)
-  (play *grid* 2 3 'A)
-  (play *grid* 0 2 4)
-  *grid*)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Fonctions servant √† l'affichage d'une grille.
-;; La fonction g√©n√©rale est en bas.
+;; Fonctions servant ‡ l'affichage d'une grille.
+;; La fonction gÈnÈrale est en bas.
 
 (defun draw-coordonates-line ()
-  (let ((size (* +n+ +n+)))
-    (format t "~C   " #\linefeed)
-    (dotimes (i size)
-      (format t "   ~D" (nth i +alphabet+)))
-    (format t "~C" #\linefeed)))
+  (format t "~C   " #\linefeed)
+  (dotimes (i +size+)
+    (format t "   ~D" (nth i +alphabet+)))
+  (format t "~C" #\linefeed))
 
-;; BACKUP BEGIN
-
-(defun draw-numbers-line (n x)
+(defun draw-numbers-line (grid n x)
   (format t " ~D  *" (nth x +alphabet+))
   (dotimes (i n)
     (dotimes (j n)
-      (format t " ~D |" (get-grid-value *grid* x (+ (* i +n+) j))))
-    (format t " ~D *" (get-grid-value *grid* x (+ (* i +n+) n))))
+      (format t " ~D |" (get-grid-value grid x (+ (* i +n+) j))))
+    (format t " ~D *" (get-grid-value grid x (+ (* i +n+) n))))
   (dotimes (k n)
-    (format t " ~D |" (get-grid-value *grid* x (+ (* +n+ n) k))))
-  (format t " ~D *~C" (get-grid-value *grid* x (+ (* +n+ n) n)) #\linefeed))
+    (format t " ~D |" (get-grid-value grid x (+ (* +n+ n) k))))
+  (format t " ~D *~C" (get-grid-value grid x (+ (* +n+ n) n)) #\linefeed))
 
 (defun draw-first-line (n)
   (format t "    *")
@@ -197,45 +181,23 @@
     (format t "****"))
   (format t "****~C" #\linefeed))
 
-;; BACKUP END
-
-;; Elle appelle les milliards de fonctions qui travaillent derri√®re,
+;; Elle appelle les milliards de fonctions qui travaillent derriËre,
 ;; selon les besoins. Il s'agit essentiellement de codes similaires,
-;; comprendre une des fonctions suffit, et de cette fa√ßon, c'est plus lisible.
-;; Passer num en param√®tre sert uniquement √† ne pas recalculer (1- +n+).
-;; "~C" #\linefeed
-;; "~D" nb
-(defun draw-grid ()
+;; comprendre une des fonctions suffit, et de cette faÁon, c'est plus lisible.
+;; Passer num en paramËtre sert uniquement ‡ ne pas recalculer (1- +n+).
+(defun draw-grid (grid)
   (let ((num (1- +n+)))
     (draw-coordonates-line)
     (draw-first-line num)
     (dotimes (i num)
       (dotimes (j num)
-	(draw-numbers-line num (+ (* i +n+) j))
+	(draw-numbers-line grid num (+ (* i +n+) j))
 	(draw-between-lines num))
-      (draw-numbers-line num (+ (* i +n+) num))
+      (draw-numbers-line grid num (+ (* i +n+) num))
       (draw-between-regions num))
     (dotimes (k num)
-      (draw-numbers-line num (+ (* +n+ num) k))
+      (draw-numbers-line grid num (+ (* +n+ num) k))
       (draw-between-lines num))
-    (draw-numbers-line num (+ (* +n+ num) num))
-    (draw-last-line num)))
-
-;; Lecture de l'entr√©e standard du joueur.
-;; Une fois d'entr√©e lue, on v√©rifie qu'elle est correcte,
-;; sinon, on relance la fonction (avec un message d'erreur).
-(defun ask-player ()
-  (let (x y c)
-    
-    (format t "Entrez une combinaison colonne-ligne sous la forme C L :~C" #\linefeed)
-    (setq y (read-char))
-    (read-char) ; L'espace
-    (setq x (read-char))
-    (read-char) ; Le newline
-    
-    (format t "Entrez une valeur √† inscrire :~C" #\linefeed)
-    (setq c (read-char))
-    
-    (if (setq x (position x +alphabet+))
-	(if (setq y (position y +alphabet+))
-	    (play *grid* x y c)))))
+    (draw-numbers-line grid num (+ (* +n+ num) num))
+    (draw-last-line num)
+    (format t "~C" #\linefeed)))
