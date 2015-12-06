@@ -2,7 +2,7 @@
 ;;;                                                    ;;;
 ;;;                    SUDOKU.LISP                     ;;;
 ;;;                                                    ;;;
-;;; Fichier principal du programme. Compliez, et c'est ;;;
+;;; Fichier principal du programme. Compilez, et c'est ;;;
 ;;;                       parti !                      ;;;
 ;;;                                                    ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -27,7 +27,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Afficher ou non les cases jouées pendant le solving.
-(defparameter +verbose+ nil)
+(defparameter +verbose+ t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;                    FONCTIONS                       ;;;
@@ -124,9 +124,11 @@
 			      (setq solved t)
 			      (setq i +n+)
 			      (setq j +n+)))))))))
-	solved))
+    solved))
 
 ;; Résoud la grille entière.
 ;; C'est agréable, une fonction moins compliquée.
 (defun solve-grid (grid)
-  (loop until (not (solve-one grid))))
+  (setq +verbose+ nil)
+  (loop until (not (solve-one grid)))
+  (setq +verbose+ t))

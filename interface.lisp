@@ -17,9 +17,12 @@
 ;;; Fonctions :                                        ;;;
 ;;;                                                    ;;;
 ;;; (ask-player)                                       ;;;
+;;; (winning)                                          ;;;
+;;; (losing)                                           ;;;
 ;;; (play-sudoku)                                      ;;;
 ;;; (step-by-step-sudoku)                              ;;;
-;;; (sudoku grid :solve :steps)                        ;;;
+;;; (notice)                                           ;;;
+;;; (sudoku :grid :solve :steps)                       ;;;
 ;;;                                                    ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -30,7 +33,6 @@
 ;; Grilles
 (defparameter +grid+ (make-grid)) ; Grille à jouer
 (defparameter +solved-grid+ nil) ; Grille résolue
-(defparameter +loaded-grid+ nil) ; ???
 
 ;; Variables de test
 (defparameter gtest #2A((1 0 0 0 0 4 0 0 5)
@@ -79,6 +81,18 @@
       (t
        t))))
 
+;; Si le joueur termine la grille, et qu'elle est correcte
+(defun winning ()
+  (draw-grid +grid+)
+  (format t "Bien joué ! Vous avez résolu la grille ! Prenez du gâteau :~C" #\linefeed)
+  (format t "~C            ,:/+/-~C            /M/              .,-=;//;-~C       .:/= ;MH/,    ,=/+%$XH@MM#@:~C      -$##@+$###@H@MMM#######H:.    -/H#~C .,H@H@ X######@ -H#####@+-     -+H###@X~C  .,@##H;      +XM##M/,     =%@###@X;-~CX%-  :M##########$.    .:%M###@%:~CM##H,   +H@@@$/-.  ,;$M###@%,          -~CM####M=,,---,.-%%H####M$:          ,+@##~C@##################@/.         :%H##@$-~CM###############H,         ;HM##M$=~C#################.    .=$M##M$=~C################H..;XM##M$=          .:+~CM###################@%=           =+@MH%~C@#################M/.         =+H#X%=~C=+M###############M,      ,/X#H+:,~C  .;XM###########H=   ,/X#H+:;~C     .=+HM#######M+/+HM@+=.~C         ,:/%XM####H/.~C              ,.:=-." #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed))
+
+;; Si le joueur termine la grille, mais s'est trompé
+(defun losing ()
+  (draw-grid +grid+)
+  (format t "Vous vous êtes trompé ! Vous allez devoir recommencer !~C" #\linefeed)
+  (format t "~C                          .,---.~C                        ,/XM#MMMX;,~C                      -%##########M%,~C                     -@######%  $###@=~C      .,--,         -H#######$   $###M:~C   ,;$M###MMX;     .;##########$;HM###X=~C,/@###########H=      ;################+~C-+#############M/,      %##############+~C%M###############=      /##############:~CH################      .M#############;.~C@###############M      ,@###########M:.~CX################,      -$=X#######@:~C/@##################%-     +######$-~C.;##################X     .X#####+,~C .;H################/     -X####+.~C   ,;X##############,       .MM/~C      ,:+$H@M#######M#$-    .$$=~C           .,-=;+$@###X:    ;/=.~C                  .,/X$;   .::,~C                      .,    .." #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed #\linefeed))
+
 ;; Le joueur joue jusqu'à la fin.
 ;; Tant qu'une case n'a pas été jouée, on demande
 ;; au joueur de jouer.
@@ -108,15 +122,18 @@
 	   end-here))
 
     ; Fin de la partie : il faut comparer les deux grilles.
-    (format t "#findugame")
-    (dotimes (i +size+)
-      (dotimes (j +size+)
-	(if (not (eq (get-grid-value +grid+ i j) (get-grid-value +solved-grid+ i j)))
-	    (progn
-	      (format t "VOUS ETES NULS A CHIER. VOILA LA REPONSE.")
-	      (draw-grid +solved-grid+)
-	      (setq i +size+)
-	      (setq j +size+)))))))
+    (format t "~C#findugame~C" #\linefeed #\linefeed)
+    (let ((did-win t))
+      (dotimes (i +size+)
+	(dotimes (j +size+)
+	  (if (not (eq (get-grid-value +grid+ i j) (get-grid-value +solved-grid+ i j)))
+	      (progn
+		(setq did-win nil)
+		(setq i +size+)
+		(setq j +size+)))))
+      (if did-win
+	  (winning)
+	  (losing)))))
 
 ;; Résoud la grille étape par étape.
 (defun step-by-step-sudoku ()
@@ -133,15 +150,27 @@
 
 ;; Résoud la grille d'un trait.
 (defun auto-solve-sudoku ()
-  (format t "Vous avez choisi de résoudre la grille automatiquement. Appuyez sur \"Entrée\" pour afficher la grille, puis de nouveau sur \"Entrée\" pour la résoudre complètement.~C" #\linefeed)
+  (format t "Vous avez choisi de résoudre la grille automatiquement. Appuyez sur \"Entrée\" pour afficher la grille, puis de nouveau sur \"Entrée\" pour la résoudre complètement.")
   (read-char)
   (draw-grid +grid+)
   (read-char)
-  (solve-grid +grid+))
+  (solve-grid +grid+)
+  (format t "Voici la grille résolue :~C" #\linefeed)
+  (draw-grid +grid+))
+
+;; Si (sudoku) n'a pas d'argument, la notice s'affiche.
+(defun notice()
+  (format t "Usage :~C" #\linefeed)
+  (format t "(sudoku :grid <nom-de-la-grille>)~C~C" #\linefeed #\linefeed)
+  (format t "Vous pouvez résoudre automatiquement la grille avec :~C" #\linefeed)
+  (format t "(sudoku :grid <nom-de-la-grille> :solve 1)~C" #\linefeed)
+  (format t "Ou la résoudre étape par étape avec :~C" #\linefeed)
+  (format t "(sudoku :grid <nom-de-la-grille> :steps 1)~C" #\linefeed)
+  )
 
 ;; Fonction principale du programme.
 ;; Transforme la grille en paramètre en grille jouable.
-;; Aucune vérification pour l'instant.
+;; Aucune vérification sur la grille en entrée.
 (defun sudoku (&key (grid nil) (solve nil) (steps nil))
   (if grid
       (progn
@@ -162,5 +191,5 @@
 	   (auto-solve-sudoku))
 	  (t
 	   (play-sudoku grid))))
-      (format t "Ici, ce sera la notice."))
+      (notice))
 )
