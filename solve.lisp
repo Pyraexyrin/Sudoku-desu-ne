@@ -26,31 +26,31 @@
 ;;;                    VARIABLES                       ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Afficher ou non les cases jouées pendant le solving.
+;; Afficher ou non les cases jouÃ©es pendant le solving.
 (defparameter +verbose+ t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;                    FONCTIONS                       ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Joue une valeur dans une case si une seule possibilité
-;; demeure. Renvoie NIL si aucune case n'a été jouée.
+;; Joue une valeur dans une case si une seule possibilitÃ©
+;; demeure. Renvoie NIL si aucune case n'a Ã©tÃ© jouÃ©e.
 (defun solve-only-possibility (grid)
   (let ((end-here nil))
     (dotimes (i +size+)
       (dotimes (j +size+)
 	(if (is-playable grid i j)
 	    (progn
-	      (if +verbose+ (format t "Case résolue : [~D, ~D] = ~D~C" (nth j +subalpha+) (nth i +subalpha+) (first (get-grid-possibilities grid i j)) #\linefeed))
+	      (if +verbose+ (format t "Case rÃ©solue : [~D, ~D] = ~D~C" (nth j +subalpha+) (nth i +subalpha+) (first (get-grid-possibilities grid i j)) #\linefeed))
 	      (play grid i j (first (get-grid-possibilities grid i j)))
 	      (setq end-here T)
 	      (setq i +size+)
 	      (setq j +size+)))))
     end-here))
 
-;; Vérifie si le caractère c peut être jouée dans la ligne
-;; x. S'il peut l'être, il l'est.
-;; Renvoie T si c a été joué.
+;; VÃ©rifie si le caractÃ¨re c peut Ãªtre jouÃ©e dans la ligne
+;; x. S'il peut l'Ãªtre, il l'est.
+;; Renvoie T si c a Ã©tÃ© jouÃ©.
 (defun solve-line (grid x c)
   (let ((cpt 0))
     (dotimes (i +size+)
@@ -60,14 +60,14 @@
 	(dotimes (i +size+)
 	  (if (position c (get-grid-possibilities grid x i))
 	      (progn
-		(if +verbose+ (format t "Case résolue : [~D, ~D] = ~D~C" (nth i +subalpha+) (nth x +subalpha+) c #\linefeed))
+		(if +verbose+ (format t "Case rÃ©solue : [~D, ~D] = ~D~C" (nth i +subalpha+) (nth x +subalpha+) c #\linefeed))
 		(play grid x i c)
 		(setq i +size+)))))
     (= 1 cpt)))
 
-;; Vérifie si le caractère c peut être jouée dans la colonne
-;; y. S'il peut l'être, il l'est.
-;; Renvoie T si c a été joué.
+;; VÃ©rifie si le caractÃ¨re c peut Ãªtre jouÃ©e dans la colonne
+;; y. S'il peut l'Ãªtre, il l'est.
+;; Renvoie T si c a Ã©tÃ© jouÃ©.
 (defun solve-column (grid y c)
   (let ((cpt 0))
     (dotimes (i +size+)
@@ -77,14 +77,14 @@
 	(dotimes (i +size+)
 	  (if (position c (get-grid-possibilities grid i y))
 	      (progn
-		(if +verbose+ (format t "Case résolue : [~D, ~D] = ~D~C" (nth y +subalpha+) (nth i +subalpha+) c #\linefeed))
+		(if +verbose+ (format t "Case rÃ©solue : [~D, ~D] = ~D~C" (nth y +subalpha+) (nth i +subalpha+) c #\linefeed))
 		(play grid i y c)
 		(setq i +size+)))))
     (= 1 cpt)))
 
-;; Vérifie si le caractère c peut être jouée dans la région
-;; débutant en (x, y). S'il peut l'être, il l'est.
-;; Renvoie T si c a été joué.
+;; VÃ©rifie si le caractÃ¨re c peut Ãªtre jouÃ©e dans la rÃ©gion
+;; dÃ©butant en (x, y). S'il peut l'Ãªtre, il l'est.
+;; Renvoie T si c a Ã©tÃ© jouÃ©.
 (defun solve-region (grid x y c)
   (let ((cpt 0))
     (dotimes (i +n+)
@@ -96,15 +96,15 @@
 	  (dotimes (j +n+)
 	    (if (position c (get-grid-possibilities grid (+ x i) (+ y j)))
 		(progn
-		  (if +verbose+ (format t "Case résolue : [~D, ~D] = ~D~C" (nth (+ y j) +subalpha+) (nth (+ x i) +subalpha+) c #\linefeed))
+		  (if +verbose+ (format t "Case rÃ©solue : [~D, ~D] = ~D~C" (nth (+ y j) +subalpha+) (nth (+ x i) +subalpha+) c #\linefeed))
 		  (play grid (+ x i) (+ y j) c)
 		  (setq i +n+)
 		  (setq j +n+))))))
     (= 1 cpt)))
 
-;; Résoud une case en utilisant les fonctions
-;; ci-dessus. S'arrête dès que l'une d'entre-elles
-;; a joué une valeur.
+;; RÃ©soud une case en utilisant les fonctions
+;; ci-dessus. S'arrÃªte dÃ¨s que l'une d'entre-elles
+;; a jouÃ© une valeur.
 (defun solve-one (grid)
   (let ((solved (solve-only-possibility grid)))
     (if (not solved)
@@ -126,8 +126,8 @@
 			      (setq j +n+)))))))))
     solved))
 
-;; Résoud la grille entière.
-;; C'est agréable, une fonction moins compliquée.
+;; RÃ©soud la grille entiÃ¨re.
+;; C'est agrÃ©able, une fonction moins compliquÃ©e.
 (defun solve-grid (grid)
   (setq +verbose+ nil)
   (loop until (not (solve-one grid)))
