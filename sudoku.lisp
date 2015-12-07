@@ -11,3 +11,4 @@
 (load "grid.lisp")
 (load "solve.lisp")
 (load "interface.lisp")
+(load "data.lisp")
